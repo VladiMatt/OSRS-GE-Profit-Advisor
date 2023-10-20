@@ -36,6 +36,8 @@ def SortByTimestamp(item):
     return item['timestamp']
 def CalcRoi(high, low):
     return((high-(high/100))/low)-1
+def SortByRoi(item):
+    return item['roi']
 
 ################################################
 def SelectOption(showHelp):
@@ -176,11 +178,11 @@ def CheckDecantProfits():
         else:
            list_loss.append(potion_data)
 
-    list_profit.sort(reverse=True,key=SortByProfit) #sort from highest to lowest
-    list_loss.sort(key=SortByProfit)
+    list_profit.sort(reverse=True,key=SortByRoi) #sort from highest to lowest
+    list_loss.sort(key=SortByRoi)
 
     print("CURRENT POTENTIAL PROFIT:")
-    textFormat = "{potion}: {profit}gp({roi}% ROI) (buy @ {buy}gp, sell @ {sell}gp)"
+    textFormat = "{potion}: {profit}gp ({roi}% ROI) (buy @ {buy}gp, sell @ {sell}gp)"
     for p in list_profit:
         print(textFormat.format(potion = p['name'], profit = p['profit'], buy = p['buy'], sell = p['sell'], roi = round(p['roi']*100, 3)))
 
@@ -193,7 +195,10 @@ def CheckDecantProfits():
 ################################################
 
 def CheckDailyMargins():
-    marginList = ["Ruby necklace"]
+    marginList = [
+    "Ruby necklace",
+    "Crushed nest"
+    ]
     for item in merged:
         if item['name'] in marginList:
             timeseries_url = "{url}timeseries?timestep={timestep}&id={id}".format(url = db_url, timestep = "5m", id=item['id'])
