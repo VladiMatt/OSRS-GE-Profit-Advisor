@@ -14,17 +14,17 @@ headers = {
     'From': 'jmattmurphy1993@gmail.com',
 }
 
-map = null
-latest = null
+merged = null
 lastUpdate = 0
 updateCooldown = 30
 
 
-#DEFS
 def Main():
     SelectOption(True)
     wait = input("Press Enter to continue.")
 
+################################################
+###### HELPER FUNCTIONS
 ################################################
 def SortByProfit(item):
     return item['profit']
@@ -34,10 +34,14 @@ def SortByAvgHighPrice(item):
     return item['avgHighPrice']
 def SortByTimestamp(item):
     return item['timestamp']
-def CalcRoi(high, low):
-    return((high-(high/100))/low)-1
 def SortByRoi(item):
     return item['roi']
+
+def LineBreak():
+    print("\n################################################\n")
+
+def CalcRoi(high, low):
+    return((high-(high/100))/low)-1
 
 ################################################
 def SelectOption(showHelp):
@@ -68,39 +72,21 @@ def SelectOption(showHelp):
 
 ################################################
 def GetItemID(itemname):
-    for item in map:
+    for item in merged:
         if item['name'] == itemname:
             return int(item['id'])
-        
-def MergeItemDataByID(itemid):
-    mergeEntries = ["low", "high"]
-    item_map = []
-    item_latest = []
-    for item in map:
-        if item['id'] == itemid:
-            item_map = item
-            item_latest = latest[str(itemid)]
-    
-    return {**item_map, **item_latest}
 
-def MergeDatabases():
-    item_map = map
+def MergeDatabases(item_map, latest):
     for item in item_map:
-        item_latest = {}
-        item_latest = GetLatestByID(item['id'])
+        item_latest = latest.get(str(item['id']))
         if not item_latest:
             item_latest = {'low': 0, 'high': 0, 'highTime':0, 'lowTime':0}
         item_merged = {**item, **item_latest}
         item_map.remove(item)
         item_map.append(item_merged)
     return item_map
+   
 
-def GetLatestByID(id):
-    return latest.get(str(id))
-    
-
-def LineBreak():
-    print("\n################################################\n")
     
 
 ################################################
@@ -123,7 +109,6 @@ def RequestDatabases():
 
 ################################################
 def ReadDatabases():
-    global map
     global latest
     global merged
     #not os.path.isfile("ge_map.json") or not os.path.isfile("ge_latest.json") or 
@@ -134,7 +119,7 @@ def ReadDatabases():
     with open('ge_latest.json', 'r') as read_latest:
         latest = json.load(read_latest)['data']
 
-    merged = MergeDatabases()
+    merged = MergeDatabases(map, latest)
 
 
 
