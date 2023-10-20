@@ -4,6 +4,7 @@ import os
 import json
 from datetime import datetime
 import time
+import math
 
 null = None #blah
 nil = None
@@ -41,7 +42,13 @@ def LineBreak():
     print("\n################################################\n")
 
 def CalcRoi(high, low):
-    return((high-(high/100))/low)-1
+    return((high-Tax(high))/low)-1
+
+def Tax(value):
+    return math.floor(value/100)
+
+def CalcProfit(investment, roi):
+    return investment * roi
 
 ################################################
 def SelectOption(showHelp):
@@ -77,17 +84,41 @@ def GetItemID(itemname):
             return int(item['id'])
 
 def MergeDatabases(item_map, latest):
+    merged_map = []
     for item in item_map:
         item_latest = latest.get(str(item['id']))
+
+        #some quick and dirty entry fixing to make sure nothing breaks
         if not item_latest:
             item_latest = {'low': 0, 'high': 0, 'highTime':0, 'lowTime':0}
+        if item_latest['low'] == null:
+            item_latest['low'] = 0
+        if item_latest['high'] == null:
+            item_latest['high'] = 0
+        if item_latest['highTime'] == null:
+            item_latest['highTime'] = 0
+        if item_latest['lowTime'] == null:
+            item_latest['lowTime'] = 0
+
         item_merged = {**item, **item_latest}
-        item_map.remove(item)
-        item_map.append(item_merged)
-    return item_map
+        merged_map.append(item_merged)
+    return merged_map
    
 
     
+################################################
+def ReadDatabases():
+    global merged
+    map = null
+    latest = null
+    if (time.time() > lastUpdate+updateCooldown): #pls dont spam their api, only update if the data is older than updateCooldown seconds
+        RequestDatabases()
+    with open('ge_map.json', 'r') as read_map:
+        map = json.load(read_map)
+    with open('ge_latest.json', 'r') as read_latest:
+        latest = json.load(read_latest)['data']
+
+    merged = MergeDatabases(map, latest)
 
 ################################################
 def RequestDatabases():
@@ -104,25 +135,9 @@ def RequestDatabases():
     with open('ge_latest.json', 'w') as write_latest:
         json.dump(_latest.json(), write_latest)
     lastUpdate = round(time.time())
-    print("Done!")
+    lastUpdateText = datetime.now().strftime("%H:%M:%S")
+    print("Database timestamp " + lastUpdateText)
     LineBreak()
-
-################################################
-def ReadDatabases():
-    global latest
-    global merged
-    #not os.path.isfile("ge_map.json") or not os.path.isfile("ge_latest.json") or 
-    if (time.time() > lastUpdate+updateCooldown): #pls dont spam their api, only update if the data is older than updateCooldown seconds
-        RequestDatabases()
-    with open('ge_map.json', 'r') as read_map:
-        map = json.load(read_map)
-    with open('ge_latest.json', 'r') as read_latest:
-        latest = json.load(read_latest)['data']
-
-    merged = MergeDatabases(map, latest)
-
-
-
 
 ################################################
 
@@ -143,20 +158,19 @@ def CheckDecantProfits():
     list_loss = []
 
     print("Decanting 3->4  profits (per 2000 buy limit)\n")
-    #print("These prices were pulled at " + datetime.now().strftime("%H:%M:%S") + "\n")
 
     for potion in list_potions:
         potion_data = {'name': potion, 'buy': null, 'sell': null, 'profit': null, 'roi': null}
         for item in merged:
             if item['name'] == potion + "(3)":
-                potion_data['buy'] = latest[str(item['id'])]['low']
+                potion_data['buy'] = item['low']
             if item['name'] == potion + "(4)":
-                potion_data['sell'] = latest[str(item['id'])]['high']
+                potion_data['sell'] = item['high']
         
         buy = potion_data['buy'] * 2000
         sell = potion_data['sell'] * 1500
         potion_data['roi'] = CalcRoi(sell, buy)
-        profit = round(sell - (sell/100) - buy)
+        profit = round(CalcProfit(buy, potion_data['roi']))
         potion_data['profit'] = profit
         if profit > 0:
             list_profit.append(potion_data)
@@ -217,7 +231,7 @@ def CheckDailyMargins():
             for entry in timeseries:
                 if entry['avgHighPrice'] > 0 and (not dailyHigh or entry['avgHighPrice'] > dailyHigh):
                     dailyHigh = entry['avgHighPrice']
-            text = "{itemname} 24hr low: {low} | 24hr high: {high} | ROI: {roi}%".format(itemname=item['name'],low=dailyLow, high=dailyHigh, roi = CalcRoi(dailyHigh, dailyLow)*100)
+            text = "{itemname} 24hr low: {low} | 24hr high: {high} | ROI: {roi}%".format(itemname=item['name'],low=dailyLow, high=dailyHigh, roi=round(CalcRoi(dailyHigh, dailyLow)*100, 3))
             print(text)
             
 
