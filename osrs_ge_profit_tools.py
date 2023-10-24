@@ -42,9 +42,9 @@ def LineBreak():
     print("\n################################################\n")
 
 def CalcRoi(high, low):
-    return((high-Tax(high))/low)-1
+    return((high-CalcTax(high))/low)-1
 
-def Tax(value):
+def CalcTax(value):
     return math.floor(value/100)
 
 def CalcProfit(investment, roi):
@@ -195,44 +195,44 @@ def CheckDecantProfits():
 
 def CheckDailyMargins():
     marginList = [
-    "Ruby necklace",
-    "Crushed nest"
+    {"name":"Ruby necklace", "dailyLow":0, "dailyHigh":0},
+    {"name":"Crushed nest", "dailyLow":0, "dailyHigh":0}
     ]
     for item in merged:
-        if item['name'] in marginList:
-            timeseries_url = "{url}timeseries?timestep={timestep}&id={id}".format(url = db_url, timestep = "5m", id=item['id'])
-            timeseries = requests.get(timeseries_url, headers=headers).json()['data']
-            timeseries.sort(reverse=True,key=SortByTimestamp)
+        for marginList_Item in marginList:
+            if marginList_Item['name'] == item['name']:
+                timeseries_url = "{url}timeseries?timestep={timestep}&id={id}".format(url = db_url, timestep = "5m", id=item['id'])
+                timeseries = requests.get(timeseries_url, headers=headers).json()['data']
+                timeseries.sort(reverse=True,key=SortByTimestamp)
 
-            #we only want 24 hours worth of data so remove anything older
-            #this is REALLY quick and janky but it works for now
-            minsInADay = 60*24
-            steps = minsInADay/5
-            i = len(timeseries) - steps
-            while i > 0:
-                i-=1
-                timeseries.remove(timeseries[0])
+                #we only want 24 hours worth of data so remove anything older
+                #kinda janky but it works for now
+                minsInADay = 60*24
+                steps = minsInADay/5
+                i = len(timeseries) - steps
+                while i > 0:
+                    i-=1
+                    timeseries.remove(timeseries[0])
 
-            #patch up missing entries
-            for entry in timeseries:
-                if entry['avgLowPrice'] == null:
-                    entry['avgLowPrice'] = 0
-                if entry['avgHighPrice'] == null:
-                    entry['avgHighPrice'] = 0
+                #patch up missing entries
+                for entry in timeseries:
+                    if entry['avgLowPrice'] == null:
+                        entry['avgLowPrice'] = 0
+                    if entry['avgHighPrice'] == null:
+                        entry['avgHighPrice'] = 0
 
-            dailyLow = null
-            dailyHigh = null
-
-            timeseries.sort(key=SortByAvgLowPrice)
-            for entry in timeseries:
-                if entry['avgLowPrice'] > 0 and (not dailyLow or entry['avgLowPrice'] < dailyLow):
-                    dailyLow = entry['avgLowPrice']
-            timeseries.sort(key=SortByAvgHighPrice)
-            for entry in timeseries:
-                if entry['avgHighPrice'] > 0 and (not dailyHigh or entry['avgHighPrice'] > dailyHigh):
-                    dailyHigh = entry['avgHighPrice']
-            text = "{itemname} 24hr low: {low} | 24hr high: {high} | ROI: {roi}%".format(itemname=item['name'],low=dailyLow, high=dailyHigh, roi=round(CalcRoi(dailyHigh, dailyLow)*100, 3))
-            print(text)
+                dailyLow = null
+                dailyHigh = null
+                timeseries.sort(key=SortByAvgLowPrice)
+                for entry in timeseries:
+                    if entry['avgLowPrice'] > 0 and (not dailyLow or entry['avgLowPrice'] < dailyLow):
+                        dailyLow = entry['avgLowPrice']
+                timeseries.sort(key=SortByAvgHighPrice)
+                for entry in timeseries:
+                    if entry['avgHighPrice'] > 0 and (not dailyHigh or entry['avgHighPrice'] > dailyHigh):
+                        dailyHigh = entry['avgHighPrice']
+                text = "{itemname} 24hr low: {low} | 24hr high: {high} | ROI: {roi}%".format(itemname=item['name'],low=dailyLow, high=dailyHigh, roi=round(CalcRoi(dailyHigh, dailyLow)*100, 3))
+                print(text)
             
 
 
