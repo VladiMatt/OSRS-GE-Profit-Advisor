@@ -35,7 +35,7 @@ def __main__():
         #Flips.FindFlips()
         CheckFlips(None)
         LineBreak()
-        CheckFlips(Decant.GetPotionDoseList(3))
+        #CheckFlips(Decant.GetPotionDoseList(3))
         LineBreak()
         
         print("DON'T FORGET TO FINISH REWRITING SHIT")
@@ -89,7 +89,8 @@ def CheckFlips(flip_list):
     
     favoritesList = [
                     "Cannonball",
-                    "Weapon poison(++)"
+                    "Amylase crystal",
+                    #"Weapon poison(++)"
                     ]
     if not flip_list or flip_list == None or flip_list == []:
         flip_list = favoritesList
@@ -102,7 +103,7 @@ def CheckFlips(flip_list):
         itemlist = []
         
         rate_limit_iteration = 0
-        max_api_calls_per_second = 10
+        max_api_calls_per_second = 5
         for item in db.merged:
             for flip_list_Item in flip_list:
                 if flip_list_Item == item['name']:
@@ -112,7 +113,7 @@ def CheckFlips(flip_list):
                     #This is a quick and dirty rate limiter to make sure we never hit the API with too many requests
                     rate_limit_iteration += 1
                     if rate_limit_iteration >= max_api_calls_per_second:
-                        time.sleep(1)
+                        time.sleep(0.5)
                         print("Processing...")
                         rate_limit_iteration = 0
                     
