@@ -23,7 +23,7 @@ lastUpdateList = []
 
 def __main__():
 
-    #SelectOption(True)
+    #this is terrible terrible code and I am deeply ashamed of it but it works and that's all that matters
     while(True):
         db.RequestDatabases()
         print("Database timestamp " + db.lastUpdateText)
@@ -33,12 +33,14 @@ def __main__():
         Decant.CheckDecantProfits()
         LineBreak()
         #Flips.FindFlips()
-        CheckFlips(None)
+        #CheckFlips(None)
         LineBreak()
-        #CheckFlips(Decant.GetPotionDoseList(3))
+        print("Speculative high/low prices for pots, based on the past 24 hours of data\n")
+        print("3-dose")
+        CheckFlips(Decant.GetPotionDoseList(3))
+        print("\n4-dose")
+        CheckFlips(Decant.GetPotionDoseList(4))
         LineBreak()
-        
-        print("DON'T FORGET TO FINISH REWRITING SHIT")
         select = input("\nPress ENTER to refresh")
         os.system('cls' if os.name=='nt' else 'clear')
       
@@ -82,8 +84,7 @@ def CheckFlips(flip_list):
     global timeseries
     global lastUpdate
     global lastUpdateList
-    print("SLOW FLIPS (Buy overnight, sell during the day):")
-    print("*This feature is still SUPER primitive, so don't expect much!*\n")
+
 
     #TODO implement better system for saving favorite items
     
@@ -103,7 +104,7 @@ def CheckFlips(flip_list):
         itemlist = []
         
         rate_limit_iteration = 0
-        max_api_calls_per_second = 5
+        max_api_calls_per_second = 10
         for item in db.merged:
             for flip_list_Item in flip_list:
                 if flip_list_Item == item['name']:
@@ -114,7 +115,7 @@ def CheckFlips(flip_list):
                     rate_limit_iteration += 1
                     if rate_limit_iteration >= max_api_calls_per_second:
                         time.sleep(0.5)
-                        print("Processing...")
+                        #print("Processing...")
                         rate_limit_iteration = 0
                     
                     #we only want 24 hours worth of data so remove anything older

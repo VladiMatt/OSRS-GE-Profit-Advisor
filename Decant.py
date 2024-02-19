@@ -36,6 +36,7 @@ def GetPotionDoseList(doses):
 def SortDecantByRoi(item):
     return item.roi
 
+#TODO: finish migrating to this more dynamic list
 def BuildPotionsList():
     potion_list = []
     all_doses = []
@@ -44,7 +45,7 @@ def BuildPotionsList():
         slice = name.find('(1)')
         if slice >= 0:
 
-            #quick fix for Serum 207 and any other potion that has a space before the dose for some reason
+            #quick fix for Serum 207 on the off chance it's ever a good decant
             if name.find(' ('):
                 name = name+' '
 
@@ -56,8 +57,8 @@ def BuildPotionsList():
 def CheckDecantProfits():
     sorted_by_profit = []
 
-    print('DECANTING 3->4  (Profit per 2,000 buylimit):')
-    print('*ROIs over 5% are usually not stable for long*\n')
+    print('Current decant prices for 3->4 dose (Profit per 2,000 buylimit)')
+    print("*These prices might change at a moment's notice so beware*\n")
 
     for potion in list_potions:
         potion_data = Decant_Potion(potion)
