@@ -6,6 +6,7 @@ import requests
 import os
 from datetime import datetime
 import time
+from random import choice
 
 
 from helpers import *
@@ -174,7 +175,10 @@ def CheckFlips(flip_list):
                     
                     flipItem.roi = round(CalcRoi(flipItem.dailyHigh, flipItem.dailyLow)*100, 3)
                     _margin = flipItem.dailyHigh - flipItem.dailyLow
-                    text = f"{flipItem.name}\n  Low: {flipItem.dailyLow} | High: {flipItem.dailyHigh} | ROI: {flipItem.roi}% | Margin: {_margin} | High/Low Volume: {flipItem.volumeHigh}K/{flipItem.volumeLow}K"
+                    text = choice([
+                        f"{flipItem.name}\n  Low: {flipItem.dailyLow} | High: {flipItem.dailyHigh} | ROI: {flipItem.roi}% | Margin: {_margin} | High/Low Volume: {flipItem.volumeHigh}K/{flipItem.volumeLow}K",
+                        f"{flipItem.name}\n  Low: cum | High: cum | ROI: cum% | Margin: cum | High/Low Volume: cum/cum"
+                    ])
                     lastUpdateList.append(text)
                     itemlist.append(flipItem)
     for text in lastUpdateList:
